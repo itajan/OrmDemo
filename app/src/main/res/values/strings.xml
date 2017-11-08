@@ -1,0 +1,4 @@
+<resources>
+  <string name="app_name">OrmDemo</string>
+  <string name="title_student_detail">Student Detail</string>
+</resources>
