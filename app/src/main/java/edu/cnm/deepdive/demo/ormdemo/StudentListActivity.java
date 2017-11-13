@@ -17,8 +17,6 @@ import android.widget.TextView;
 
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
-import edu.cnm.deepdive.demo.ormdemo.StudentDetailFragment.StudentDetailFragmentDaoInteraction;
-import edu.cnm.deepdive.demo.ormdemo.dummy.DummyContent;
 
 import edu.cnm.deepdive.demo.ormdemo.entities.Student;
 import edu.cnm.deepdive.demo.ormdemo.helpers.OrmHelper;
@@ -33,7 +31,7 @@ import java.util.List;
  */
 public class StudentListActivity
     extends AppCompatActivity
-    implements StudentDetailFragment.StudentDetailFragmentDaoInteraction {
+    implements OrmHelper.OrmInteraction {
 
   /**
    * Whether or not the activity is in two-pane mode, i.e. running on a tablet device.
@@ -108,12 +106,6 @@ public class StudentListActivity
     }
   }
 
-  @Override
-  public Dao<Student, Integer> getDao() throws SQLException {
-    return getHelper().getStudentDao();
-  }
-
-
   public class SimpleItemRecyclerViewAdapter
       extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
 
@@ -141,7 +133,7 @@ public class StudentListActivity
         public void onClick(View v) {
           if (mTwoPane) {
             Bundle arguments = new Bundle();
-            arguments.putInt(StudentDetailFragment.ARG_ITEM_ID, holder.mItem.getId());
+            arguments.putInt(StudentDetailFragment.STUDENT_ID, holder.mItem.getId());
             StudentDetailFragment fragment = new StudentDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
@@ -150,8 +142,7 @@ public class StudentListActivity
           } else {
             Context context = v.getContext();
             Intent intent = new Intent(context, StudentDetailActivity.class);
-            intent.putExtra(StudentDetailFragment.ARG_ITEM_ID, holder.mItem.getId());
-
+            intent.putExtra(StudentDetailFragment.STUDENT_ID, holder.mItem.getId());
             context.startActivity(intent);
           }
         }
@@ -179,7 +170,7 @@ public class StudentListActivity
 
       @Override
       public String toString() {
-        return super.toString() + " '" + mCreatedView.getText() + "'";
+        return super.toString() + " '" + mStudentView.getText() + "'";
       }
     }
   }

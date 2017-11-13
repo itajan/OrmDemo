@@ -11,7 +11,6 @@ import android.support.v7.app.ActionBar;
 import android.view.MenuItem;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
-import edu.cnm.deepdive.demo.ormdemo.StudentDetailFragment.StudentDetailFragmentDaoInteraction;
 import edu.cnm.deepdive.demo.ormdemo.entities.Student;
 import edu.cnm.deepdive.demo.ormdemo.helpers.OrmHelper;
 import java.sql.SQLException;
@@ -23,7 +22,9 @@ import java.sql.SQLException;
  */
 public class StudentDetailActivity
     extends AppCompatActivity
-    implements  StudentDetailFragment.StudentDetailFragmentDaoInteraction {
+    implements  OrmHelper.OrmInteraction {
+
+  private static final String LOG_TAG = "STUDENT_DETAIL_ACTIVITY";
 
   private OrmHelper helper = null;
 
@@ -31,17 +32,17 @@ public class StudentDetailActivity
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_student_detail);
-    Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
+    Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
 
-    FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-    fab.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        Snackbar.make(view, "Replace with your own detail action", Snackbar.LENGTH_LONG)
-            .setAction("Action", null).show();
-      }
-    });
+//    FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+//    fab.setOnClickListener(new View.OnClickListener() {
+//      @Override
+//      public void onClick(View view) {
+//        Snackbar.make(view, "Replace with your own detail action", Snackbar.LENGTH_LONG)
+//            .setAction("Action", null).show();
+//      }
+//    });
 
     // Show the Up button in the action bar.
     ActionBar actionBar = getSupportActionBar();
@@ -62,8 +63,8 @@ public class StudentDetailActivity
       // Create the detail fragment and add it to the activity
       // using a fragment transaction.
       Bundle arguments = new Bundle();
-      arguments.putInt(StudentDetailFragment.ARG_ITEM_ID,
-          getIntent().getIntExtra(StudentDetailFragment.ARG_ITEM_ID, 0));
+      arguments.putInt(StudentDetailFragment.STUDENT_ID,
+          getIntent().getIntExtra(StudentDetailFragment.STUDENT_ID, 0));
       StudentDetailFragment fragment = new StudentDetailFragment();
       fragment.setArguments(arguments);
       getSupportFragmentManager().beginTransaction()
@@ -100,11 +101,6 @@ public class StudentDetailActivity
       OpenHelperManager.releaseHelper();
       helper = null;
     }
-  }
-
-  @Override
-  public Dao<Student, Integer> getDao() throws SQLException {
-    return getHelper().getStudentDao();
   }
 
 }

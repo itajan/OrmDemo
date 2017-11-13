@@ -1,17 +1,22 @@
 package edu.cnm.deepdive.demo.ormdemo;
 
-import android.app.Activity;
-import android.support.design.widget.CollapsingToolbarLayout;
+
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import com.j256.ormlite.dao.Dao;
-import edu.cnm.deepdive.demo.ormdemo.dummy.DummyContent;
+import com.j256.ormlite.stmt.QueryBuilder;
+import edu.cnm.deepdive.demo.ormdemo.entities.Absence;
 import edu.cnm.deepdive.demo.ormdemo.entities.Student;
+import edu.cnm.deepdive.demo.ormdemo.helpers.OrmHelper;
 import java.sql.SQLException;
+import java.util.List;
 
 /**
  * A fragment representing a single Student detail screen. This fragment is either contained in a
@@ -23,59 +28,66 @@ public class StudentDetailFragment extends Fragment {
   /**
    * The fragment argument representing the item ID that this fragment represents.
    */
-  public static final String ARG_ITEM_ID = "student_id";
+  public static final String STUDENT_ID = "student_id";
 
   /**
    * The dummy content this fragment is presenting.
    */
-  private Student mItem;
+  private Student student;
+  private int studentId;
+  private OrmHelper helper;
+  private View rootView;
+  private ListView absenceList;
+  private ArrayAdapter<Absence> absenceAdapter;
 
   /**
    * Mandatory empty constructor for the fragment manager to instantiate the fragment (e.g. upon
    * screen orientation changes).
    */
-  public StudentDetailFragment() {
-  }
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-
-    if (getArguments().containsKey(ARG_ITEM_ID)) {
-      // Load the dummy content specified by the fragment
-      // arguments. In a real-world scenario, use a Loader
-      // to load content from a content provider.
-      try {
-        mItem = ((StudentDetailFragmentDaoInteraction) getContext()).getDao().queryForId(getArguments().getInt(ARG_ITEM_ID));
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
-
-      Activity activity = this.getActivity();
-      CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity
-          .findViewById(R.id.toolbar_layout);
-      if (appBarLayout != null) {
-        appBarLayout.setTitle(mItem.getName());
-      }
+    if (getArguments().containsKey(STUDENT_ID)) {
+      studentId = getArguments().getInt(STUDENT_ID);
+    } else {
+      studentId = 0;
     }
   }
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
       Bundle savedInstanceState) {
-    View rootView = inflater.inflate(R.layout.student_detail, container, false);
-
-    // Show the dummy content as text in a TextView.
-    if (mItem != null) {
-      ((TextView) rootView.findViewById(R.id.student_detail)).setText(mItem.toString());
-    }
-
+    rootView = inflater.inflate(R.layout.student_detail, container, false);
+    absenceList = rootView.findViewById(R.id.absence_list);
+    absenceAdapter = new ArrayAdapter<>(getContext(), R.layout.absence_list_item);
+    absenceList.setAdapter(absenceAdapter);
     return rootView;
   }
 
-  public interface StudentDetailFragmentDaoInteraction {
-    // Abstract has no body aka "{}"
-    Dao<Student, Integer> getDao() throws SQLException;
-
+  @Override
+  public void onStart() {
+    super.onStart();
+    helper = ((OrmHelper.OrmInteraction) getActivity()).getHelper();
+    if (studentId > 0) {
+      try {
+        Dao<Student, Integer> studentDao = helper.getStudentDao();
+        Dao<Absence, Integer> absenceDao = helper.getAbsenceDao();
+        student = studentDao.queryForId(getArguments().getInt(STUDENT_ID));
+        ((TextView) getActivity().findViewById(R.id.student_id)).setText(Integer.toString(student.getId()));
+        ((EditText) getActivity().findViewById(R.id.student_name)).setText(student.getName());
+        ((TextView) getActivity().findViewById(R.id.student_created)).setText(student.getCreated().toString());
+        QueryBuilder<Absence, Integer> builder = absenceDao.queryBuilder();
+        builder.where().eq("STUDENT_ID", student.getId());
+        builder.orderBy("DATE", false);
+        List<Absence> absences = absenceDao.query(builder.prepare());
+        absenceAdapter.addAll(absences);
+        absenceAdapter.notifyDataSetChanged();
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
+    }  else {
+      student = null;
+    }
   }
 }
